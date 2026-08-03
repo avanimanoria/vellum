@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vellum Cognitive Memory Console</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-main: #060913;
+            --bg-panel: #0d1326;
+            --bg-card: rgba(22, 29, 54, 0.7);
+            --bg-card-hover: rgba(32, 42, 77, 0.9);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --accent-blue: #38bdf8;
+            --accent-indigo: #6366f1;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-orange: #f59e0b;
+            
+            --font-display: 'Outfit', sans-serif;
+            --font-sans: 'Inter', sans-serif;
+            --shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.12) 0px, transparent 50%);
+        }
+
+        /* Sidebar user switcher styling */
+        .sidebar {
+            width: 250px;
+            background-color: rgba(8, 11, 22, 0.9);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            z-index: 10;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-badge {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--accent-indigo);
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        .user-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .user-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+            transform: translateY(-1px);
+        }
+
+        .user-card.active {
+            border-color: var(--accent-indigo);
+            background: rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .user-header-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-family: var(--font-display);
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .user-meta-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .user-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .user-status-badge {
+            align-self: flex-start;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-rich { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .badge-contra { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .badge-light { background: rgba(245, 158, 11, 0.1); color: var(--accent-orange); border: 1px solid rgba(245, 158, 11, 0.2); }
+
+        /* Main Workspace Container */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Top Summary Strip */
+        .top-summary-strip {
+            height: 48px;
+            background: rgba(13, 19, 38, 0.85);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .summary-item {
+            color: var(--text-secondary);
+        }
+
+        .summary-item strong {
+            color: var(--text-primary);
+        }
+
+        .summary-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+        }
+
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+            display: inline-block;
+        }
+
+        /* Header Tabs */
+        .header-tabs {
+            height: 56px;
+            background: rgba(10, 15, 28, 0.5);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 6px;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn {
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+
+        .tab-counter {
+            font-size: 9px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1px 5px;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .tab-btn.active .tab-counter {
+            background: var(--accent-blue);
+            color: #000;
+        }
+
+        .workspace {
+            flex: 1;
+            display: none;
+            padding: 20px 24px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .workspace.active {
+            display: flex;
+        }
+
+        /* --- Chat Workspace Layout --- */
+        #chat-workspace {
+            display: none;
+            gap: 20px;
+            height: calc(100% - 104px);
+            padding: 20px;
+            overflow: hidden;
+        }
+        #chat-workspace.active {
+            display: flex;
+        }
+
+        .chat-pane {
+            flex: 1.4;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .chat-history {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            line-height: 1.45;
+            position: relative;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .message-row.user {
+            align-items: flex-end;
+        }
+
+        .message-bubble.user {
+            background: linear-gradient(135deg, var(--accent-indigo), rgba(99, 102, 241, 0.85));
+            color: var(--text-primary);
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .message-row.assistant {
+            align-items: flex-start;
+        }
+
+        .message-bubble.assistant {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-bottom-left-radius: 2px;
+        }
+
+        .message-bubble.assistant strong {
+            color: var(--accent-blue);
+        }
+
+        .message-time {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            margin-bottom: 2px;
+        }
+
+        /* Memory chips below responses */
+        .memory-chips-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+            padding-left: 2px;
+        }
+
+        .memory-chip {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .memory-chip:hover {
+            background: rgba(56, 189, 248, 0.08);
+            border-color: rgba(56, 189, 248, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .chip-indicator {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+        .ci-belief { background-color: var(--accent-green); }
+        .ci-episode { background-color: var(--accent-blue); }
+
+        .chat-input-bar-container {
+            border-top: 1px solid var(--border-color);
+            padding: 14px 20px;
+            background: rgba(8, 11, 22, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-input-bar {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 0 16px;
+            font-family: var(--font-sans);
+            font-size: 13.5px;
+            height: 44px;
+            transition: var(--transition);
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.1);
+        }
+
+        .send-btn {
+            background: var(--accent-blue);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            font-weight: 700;
+            font-family: var(--font-display);
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .send-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .send-btn:disabled {
+            background: var(--text-muted);
+            color: var(--bg-main);
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.5;
+        }
+
+        /* Try This guided suggestions */
+        .try-suggestions-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            overflow-x: auto;
+        }
+
+        .try-label {
+            color: var(--text-muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .try-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 3px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: var(--transition);
+        }
+
+        .try-btn:hover {
+            border-color: var(--accent-indigo);
+            background: rgba(99, 102, 241, 0.08);
+            color: var(--text-primary);
+        }
+
+        /* Explanations & WM Side Panel */
+        .side-pane {
+            width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+        }
+
+        .side-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-card-title {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reason-badge {
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .reason-badge.rb-salience { border-color: var(--accent-indigo); color: var(--accent-indigo); background: rgba(99, 102, 241, 0.08); }
+        .reason-badge.rb-match { border-color: var(--accent-green); color: var(--accent-green); background: rgba(16, 185, 129, 0.08); }
+        .reason-badge.rb-conflict { border-color: var(--accent-red); color: var(--accent-red); background: rgba(239, 68, 68, 0.08); }
+
+        .explanation-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 0;
+        }
+        .explanation-item:last-child {
+            border-bottom: none;
+        }
+
+        .explanation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .explanation-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .explanation-text {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
+
+        /* Working Memory list layout */
+        .wm-kv-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        .wm-kv-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            margin-bottom: 4px;
+        }
+        .wm-kv-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .wm-key {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .wm-value {
+            color: var(--text-primary);
+            font-weight: 500;
+            text-align: right;
+            max-width: 60%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Loader & Skeletal States */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.02) 75%);
+            background-size: 200% 100%;
+            animation: loadingSkeleton 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        .skeleton-text {
+            height: 12px;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+
+        .skeleton-badge {
+            height: 16px;
+            width: 80px;
+            border-radius: 4px;
+        }
+
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        /* Empty states */
+        .empty-state-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+            text-align: center;
+            color: var(--text-muted);
+            gap: 8px;
+            flex: 1;
+        }
+
+        .empty-state-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+            opacity: 0.5;
+        }
+
+        /* --- Memory Inspector Layout --- */
+        #inspector-workspace {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .table-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+        }
+
+        .card-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .input-search {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 8px 16px;
+            font-size: 12.5px;
+            width: 250px;
+            transition: var(--transition);
+        }
+
+        .input-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .scroll-table-container {
+            overflow-x: auto;
+            max-height: 550px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 12.5px;
+        }
+
+        th {
+            color: var(--text-muted);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 10.5px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            line-height: 1.4;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .score-val {
+            font-family: var(--font-display);
+            font-weight: 600;
+        }
+
+        /* --- Belief Timeline Workspace --- */
+        #belief-workspace {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .belief-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .belief-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .belief-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-hover);
+        }
+
+        .belief-status-dot {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-deprecated {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status-conflicted {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-orange);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .belief-ns {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .belief-title {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .belief-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 11.5px;
+            color: var(--text-secondary);
+        }
+
+        /* --- Dashboard Workspace --- */
+        #dashboard-workspace {
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-tile {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .metric-num {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .admin-controls-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 12.5px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .action-btn:hover {
+            border-color: var(--accent-blue);
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        .eval-results-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 11.5px;
+            color: var(--accent-green);
+            overflow-y: auto;
+            max-height: 250px;
+            margin-top: 16px;
+            display: none;
+            border-left: 3px solid var(--accent-green);
+        }
+
+        /* Success alerts */
+        .toast-notif {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(100px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes loadingSkeleton {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR: SWITCHERS -->
+    <div class="sidebar">
+        <div class="logo-container">
+            <div class="logo">Vellum</div>
+            <div class="logo-badge">Console</div>
+        </div>
+        
+        <div class="section-label">Selected Profile</div>
+        <div id="users-list">
+            <!-- User cards dynamically loaded -->
+        </div>
+
+        <div class="section-label" style="margin-top: auto;">Demo Utilities</div>
+        <button class="action-btn" style="width: 100%; border-color: var(--accent-indigo); background: rgba(99, 102, 241, 0.05); font-size: 11px; padding: 8px 12px;" onclick="runContradictionDemo()">
+            ⚡ Run Revision Flow
+        </button>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="main-container">
+        
+        <!-- TOP SUMMARY STRIP -->
+        <div class="top-summary-strip">
+            <div class="summary-left">
+                <div class="summary-item">User: <strong id="strip-user">-</strong></div>
+                <div class="summary-item">Active Beliefs: <strong id="strip-beliefs">-</strong></div>
+                <div class="summary-item">Session: <strong id="strip-session" style="font-family: monospace; font-size: 11px;">-</strong></div>
+            </div>
+            <div class="summary-right">
+                <span class="live-indicator"></span>
+                <span>System Sync Live</span>
+                <span style="margin-left: 8px;" id="strip-updated">Just now</span>
+            </div>
+        </div>
+
+        <!-- HEADER TABS -->
+        <div class="header-tabs">
+            <button class="tab-btn active" onclick="switchTab('chat-workspace', this)">
+                Chat Terminal
+            </button>
+            <button class="tab-btn" onclick="switchTab('inspector-workspace', this)">
+                Memory Inspector <span class="tab-counter" id="cnt-inspector">-</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('belief-workspace', this)">
+                Belief Timeline <span class="tab-counter" id="cnt-timeline">-</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('dashboard-workspace', this)">
+                Observability & Evals
+            </button>
+        </div>
+
+        <!-- WORKSPACE: CHAT -->
+        <div id="chat-workspace" class="workspace active">
+            <div class="chat-pane">
+                <div class="chat-history" id="chat-messages">
+                    <div class="message-row assistant">
+                        <div class="message-bubble assistant">
+                            Hello! Select a demo profile on the left. You can chat with me, express role preferences, or trigger an automated belief revision flow to watch beliefs revise in real-time.
+                        </div>
+                        <div class="message-time">12:00 AM</div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-bar-container">
+                    <div class="try-suggestions-row">
+                        <div class="try-label">Try saying:</div>
+                        <div id="demo-suggestions-container" style="display: flex; gap: 8px;">
+                            <!-- Injected suggestions based on active user -->
+                        </div>
+                    </div>
+                    <div class="chat-input-bar">
+                        <input type="text" class="chat-input" id="chat-msg-input" placeholder="Express a career preference or ask a question..." onkeydown="if(event.key==='Enter') sendMessage()">
+                        <button class="send-btn" id="chat-send-btn" onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIDE PANEL -->
+            <div class="side-pane">
+                <div class="side-card" style="flex: 1.2;">
+                    <div class="side-card-title">
+                        <span>Explainable Retrieval</span>
+                    </div>
+                    <div style="flex: 1; overflow-y: auto;" id="explanations-list">
+                        <!-- Custom empty state -->
+                        <div class="empty-state-container">
+                            <div class="empty-state-icon">🔍</div>
+                            <div class="explanation-text" style="text-align: center;">No memories retrieved yet. Send a message to inspect Vellum's explanation layer.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="side-card" style="flex: 0.8;">
+                    <div class="side-card-title">
+                        <span>Working Memory Context</span>
+                    </div>
+                    <div id="wm-state-box">
+                        <div class="empty-state-container">
+                            <div class="empty-state-icon">🧠</div>
+                            <div class="explanation-text" style="text-align: center;">Working memory is currently empty.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKSPACE: INSPECTOR -->
+        <div id="inspector-workspace" class="workspace">
+            <div class="table-card" style="width: 100%;">
+                <div class="card-header-bar">
+                    <div class="side-card-title" style="margin-bottom: 0;">Cognitive Memory Pack (Episodic / Semantic)</div>
+                    <input type="text" class="input-search" id="memory-search" placeholder="Search memory cluster..." oninput="loadMemoryPack()">
+                </div>
+                <div class="scroll-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Memory content summary</th>
+                                <th>Identifier Subject</th>
+                                <th>Hybrid Score</th>
+                                <th>Confidence</th>
+                                <th>Validated Stamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="memory-pack-rows">
+                            <!-- Dynamically loaded rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKSPACE: BELIEFS -->
+        <div id="belief-workspace" class="workspace">
+            <div class="side-card-title">Current Inferred Beliefs</div>
+            <div class="belief-grid" id="beliefs-grid">
+                <!-- Dynamically loaded belief timeline cards -->
+            </div>
+            
+            <div class="table-card" style="margin-top: 20px; width: 100%;">
+                <div class="side-card-title">Belief Audit History & Revision Trail</div>
+                <div class="scroll-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Action type</th>
+                                <th>Reasoning rationale</th>
+                                <th>Source belief ID</th>
+                                <th>Target belief ID</th>
+                                <th>Event Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="revision-log-rows">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKSPACE: OBSERVABILITY -->
+        <div id="dashboard-workspace" class="workspace">
+            <div class="side-card-title">Cognitive Health Metrics (Observability)</div>
+            <div class="metrics-grid" id="metrics-grid-box">
+                <!-- Metric widgets -->
+            </div>
+
+            <div class="admin-controls-card" style="margin-top: 20px; width: 100%;">
+                <div class="side-card-title">Background Memory Maintenance & Evaluations</div>
+                <div class="explanation-text">Observe state transitions of background consolidation, decay jobs, or evaluation test scenarios. Logs will show real-time responses below.</div>
+                <div class="btn-row">
+                    <button class="action-btn" onclick="runEvals()">Run Benchmark Evals</button>
+                    <button class="action-btn" onclick="triggerDecay()">Run Active Decay (10%)</button>
+                    <button class="action-btn" onclick="triggerCompression()">Compress Weak Episodes</button>
+                </div>
+                <pre class="eval-results-box" id="evals-log-box"></pre>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container"></div>
+
+    <script>
+        const API_BASE = "";
+        let activeUser = "avani_researcher";
+        let activeSession = null;
+
+        const demoUsers = [
+            { 
+                id: "avani_researcher", 
+                name: "Avani Manoria", 
+                desc: "AI Researcher • Career Preference Focus", 
+                status: "rich memory", 
+                badgeClass: "badge-rich",
+                suggestions: [
+                    "I want to focus on backend engineering in my new role.",
+                    "Actually, I decided to switch and focus on frontend UI today."
+                ]
+            },
+            { 
+                id: "bob_developer", 
+                name: "Bob Builder", 
+                desc: "Mobile Developer • UI Focus", 
+                status: "contradiction case", 
+                badgeClass: "badge-contra",
+                suggestions: [
+                    "I want to design Flutter apps.",
+                    "Actually, I decided I hate flutter and want to build iOS native UI."
+                ]
+            },
+            { 
+                id: "charlie_designer", 
+                name: "Charlie Sketch", 
+                desc: "Casual User • Light Conversation History", 
+                status: "light history", 
+                badgeClass: "badge-light",
+                suggestions: [
+                    "hello there, how's it going today?",
+                    "What does Vellum currently know about me?"
+                ]
+            }
+        ];
+
+        window.onload = function() {
+            renderUserSwitcher();
+            selectUser(activeUser);
+        };
+
+        function renderUserSwitcher() {
+            const container = document.getElementById("users-list");
+            container.innerHTML = "";
+            demoUsers.forEach(u => {
+                const card = document.createElement("div");
+                card.className = `user-card ${u.id === activeUser ? 'active' : ''}`;
+                card.onclick = () => selectUser(u.id);
+                
+                const initials = u.name.split(" ").map(n => n[0]).join("");
+                
+                card.innerHTML = `
+                    <div class="user-header-row">
+                        <div class="avatar">${initials}</div>
+                        <div class="user-meta-details">
+                            <div class="user-name">${u.name}</div>
+                            <div class="user-desc">${u.desc}</div>
+                        </div>
+                    </div>
+                    <span class="user-status-badge ${u.badgeClass}">${u.status}</span>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectUser(userId) {
+            activeUser = userId;
+            renderUserSwitcher();
+            
+            // Set header strip user
+            document.getElementById("strip-user").innerText = demoUsers.find(u => u.id === userId).name;
+            
+            activeSession = "00000000-0000-0000-0000-00000000000" + (userId === "avani_researcher" ? "1" : userId === "bob_developer" ? "2" : "3");
+            document.getElementById("strip-session").innerText = activeSession.substring(0, 18) + "...";
+
+            // Set suggest tags
+            const suggContainer = document.getElementById("demo-suggestions-container");
+            suggContainer.innerHTML = "";
+            const userObj = demoUsers.find(u => u.id === userId);
+            userObj.suggestions.forEach(s => {
+                const btn = document.createElement("button");
+                btn.className = "try-btn";
+                btn.innerText = s;
+                btn.onclick = () => {
+                    document.getElementById("chat-msg-input").value = s;
+                    sendMessage();
+                };
+                suggContainer.appendChild(btn);
+            });
+
+            // Reset chat messages
+            document.getElementById("chat-messages").innerHTML = `
+                <div class="message-row assistant">
+                    <div class="message-bubble assistant">
+                        Loaded profile context for <strong>${userObj.name}</strong>. I am fully initialized with all persistent memory indexes.
+                    </div>
+                    <div class="message-time">${getCurrentTimeStr()}</div>
+                </div>
+            `;
+            
+            // Clear pane states to empty layouts
+            document.getElementById("explanations-list").innerHTML = `
+                <div class="empty-state-container">
+                    <div class="empty-state-icon">🔍</div>
+                    <div class="explanation-text">No memories retrieved yet. Send a message to inspect Vellum's explanation layer.</div>
+                </div>
+            `;
+
+            document.getElementById("wm-state-box").innerHTML = `
+                <div class="empty-state-container">
+                    <div class="empty-state-icon">🧠</div>
+                    <div class="explanation-text">Working memory is currently empty.</div>
+                </div>
+            `;
+
+            // Reload backend data
+            loadMemoryPack();
+            loadMetrics();
+            loadRevisionHistory();
+            
+            showToast(`Loaded context for ${userObj.name}`);
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll(".workspace").forEach(w => w.classList.remove("active"));
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            
+            document.getElementById(tabId).classList.add("active");
+            btn.classList.add("active");
+        }
+
+        function getCurrentTimeStr() {
+            const d = new Date();
+            let hours = d.getHours();
+            let minutes = d.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
+        // --- Chat Operations ---
+        async function sendMessage() {
+            const input = document.getElementById("chat-msg-input");
+            const btn = document.getElementById("chat-send-btn");
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = "";
+            input.disabled = true;
+            btn.disabled = true;
+
+            appendMessage(text, "user");
+            
+            // Show typing indicator
+            const history = document.getElementById("chat-messages");
+            const loaderRow = document.createElement("div");
+            loaderRow.className = "message-row assistant";
+            loaderRow.id = "typing-indicator-row";
+            loaderRow.innerHTML = `
+                <div class="message-bubble assistant">
+                    <div class="loading-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            `;
+            history.appendChild(loaderRow);
+            history.scrollTop = history.scrollHeight;
+
+            // Trigger skeletons in side card
+            renderExplanationsSkeleton();
+            renderWMSkeleton();
+
+            try {
+                const response = await fetch(`${API_BASE}/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        external_user_id: activeUser,
+                        session_id: activeSession,
+                        message: text,
+                        salience_score: 0.90,
+                        token_count: text.split(" ").length
+                    })
+                });
+
+                // Remove typing indicator
+                const indicator = document.getElementById("typing-indicator-row");
+                if (indicator) indicator.remove();
+
+                if (!response.ok) {
+                    throw new Error("API call failed");
+                }
+
+                const data = await response.json();
+                appendMessage(data.reply, "assistant", data.used_memory);
+                
+                // Update side components
+                renderExplanations(data.used_memory.explanations || []);
+                renderWorkingMemory(data.used_memory.working_memory);
+                
+                // Refresh workspaces in background
+                loadMemoryPack();
+                loadMetrics();
+                loadRevisionHistory();
+
+            } catch (err) {
+                const indicator = document.getElementById("typing-indicator-row");
+                if (indicator) indicator.remove();
+                appendMessage(`Error retrieving response: ${err.message}. Please retry.`, "assistant");
+            } finally {
+                input.disabled = false;
+                btn.disabled = false;
+                input.focus();
+            }
+        }
+
+        function appendMessage(text, sender, usedMemory = null) {
+            const container = document.getElementById("chat-messages");
+            const row = document.createElement("div");
+            row.className = `message-row ${sender}`;
+            
+            let bubbleHtml = `<div class="message-bubble ${sender}">${text}</div>`;
+            
+            let chipsHtml = "";
+            if (usedMemory && sender === "assistant") {
+                const epCount = (usedMemory.episode_ids || []).length;
+                const belCount = (usedMemory.belief_ids || []).length;
+                
+                if (epCount > 0 || belCount > 0) {
+                    chipsHtml = `<div class="memory-chips-row">`;
+                    if (belCount > 0) {
+                        chipsHtml += `
+                            <span class="memory-chip" onclick="switchTab('belief-workspace', document.querySelectorAll('.tab-btn')[2])">
+                                <span class="chip-indicator ci-belief"></span>
+                                Inferred Belief (${belCount})
+                            </span>
+                        `;
+                    }
+                    if (epCount > 0) {
+                        chipsHtml += `
+                            <span class="memory-chip" onclick="switchTab('inspector-workspace', document.querySelectorAll('.tab-btn')[1])">
+                                <span class="chip-indicator ci-episode"></span>
+                                Episode Memory (${epCount})
+                            </span>
+                        `;
+                    }
+                    chipsHtml += `</div>`;
+                }
+            }
+
+            row.innerHTML = `
+                ${bubbleHtml}
+                ${chipsHtml}
+                <div class="message-time">${getCurrentTimeStr()}</div>
+            `;
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function renderExplanations(explanations) {
+            const container = document.getElementById("explanations-list");
+            container.innerHTML = "";
+            
+            if (explanations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state-container">
+                        <div class="empty-state-icon">🔍</div>
+                        <div class="explanation-text">No memories met the relevance threshold for this turn.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            explanations.forEach(exp => {
+                const badges = exp.selection_reasons.map(r => {
+                    let c = "";
+                    if (r.includes("salience")) c = "rb-salience";
+                    if (r.includes("match")) c = "rb-match";
+                    if (r.includes("conflict")) c = "rb-conflict";
+                    return `<span class="reason-badge ${c}">${r.replace("_", " ")}</span>`;
+                }).join(" ");
+
+                const item = document.createElement("div");
+                item.className = "explanation-item";
+                item.innerHTML = `
+                    <div class="explanation-header">
+                        <span class="explanation-title" style="color: ${exp.item_type === 'belief' ? 'var(--accent-green)' : 'var(--accent-blue)'}">${exp.item_type}</span>
+                        <div style="display:flex; gap:4px;">${badges}</div>
+                    </div>
+                    <div class="explanation-text">${exp.human_explanation}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderWorkingMemory(wm) {
+            const container = document.getElementById("wm-state-box");
+            container.innerHTML = "";
+            if (!wm || !wm.active_goal) {
+                container.innerHTML = `
+                    <div class="empty-state-container">
+                        <div class="empty-state-icon">🧠</div>
+                        <div class="explanation-text">Working memory is currently empty. Express a goal to seed context.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "wm-kv-card";
+            wrapper.innerHTML = `
+                <div class="wm-kv-row">
+                    <span class="wm-key">Active Goal</span>
+                    <span class="wm-value" style="color: var(--accent-blue); font-weight:600;">${wm.active_goal}</span>
+                </div>
+                <div class="wm-kv-row">
+                    <span class="wm-key">State Version</span>
+                    <span class="wm-value">${wm.version || 1}</span>
+                </div>
+                <div class="wm-kv-row">
+                    <span class="wm-key">Phase Status</span>
+                    <span class="wm-value" style="color: var(--accent-green)">active_session</span>
+                </div>
+            `;
+            container.appendChild(wrapper);
+        }
+
+        // --- Skeleton Render Utilities ---
+        function renderExplanationsSkeleton() {
+            const container = document.getElementById("explanations-list");
+            container.innerHTML = `
+                <div class="explanation-item">
+                    <div class="explanation-header">
+                        <div class="skeleton skeleton-badge"></div>
+                    </div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                </div>
+                <div class="explanation-item">
+                    <div class="explanation-header">
+                        <div class="skeleton skeleton-badge"></div>
+                    </div>
+                    <div class="skeleton skeleton-text"></div>
+                </div>
+            `;
+        }
+
+        function renderWMSkeleton() {
+            const container = document.getElementById("wm-state-box");
+            container.innerHTML = `
+                <div class="wm-kv-card">
+                    <div class="skeleton skeleton-text" style="width: 60%; margin-bottom: 10px;"></div>
+                    <div class="skeleton skeleton-text" style="width: 40%;"></div>
+                </div>
+            `;
+        }
+
+        // --- Memory Inspector Workspace ---
+        async function loadMemoryPack() {
+            const search = document.getElementById("memory-search").value;
+            const url = `${API_BASE}/users/${activeUser}/memory-pack?query=${encodeURIComponent(search)}`;
+            
+            const tbody = document.getElementById("memory-pack-rows");
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center;">
+                        <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                tbody.innerHTML = "";
+                
+                if (!data.items || data.items.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align:center; color: var(--text-muted); padding: 30px;">
+                                No cognitive memories matched your search cluster.
+                            </td>
+                        </tr>
+                    `;
+                    document.getElementById("cnt-inspector").innerText = "0";
+                    return;
+                }
+
+                document.getElementById("cnt-inspector").innerText = data.items.length;
+
+                data.items.forEach(item => {
+                    const typeColor = item.item_type === 'belief' ? 'var(--accent-green)' : 'var(--accent-blue)';
+                    const score = item.retrieval ? item.retrieval.hybrid_score.toFixed(2) : '-';
+                    const detail = item.item_type === 'belief' ? item.label_1 : 'episode_signal';
+                    
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td style="color: ${typeColor}; font-weight:700;">${item.item_type.toUpperCase()}</td>
+                        <td>${item.label_2}</td>
+                        <td><span style="font-family: monospace; font-size:11.5px;">${detail}</span></td>
+                        <td class="score-val" style="color: var(--accent-blue);">${score}</td>
+                        <td class="score-val">${(item.score_2 || 0).toFixed(2)}</td>
+                        <td>${new Date(item.ts).toLocaleString()}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center; color: var(--accent-red); padding: 30px;">
+                            Failed to retrieve memory indexes. <button class="action-btn" style="padding: 4px 10px; font-size: 11px; margin-left: 8px;" onclick="loadMemoryPack()">Retry</button>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // --- Beliefs & Timeline Workspace ---
+        async function loadRevisionHistory() {
+            const beliefsGrid = document.getElementById("beliefs-grid");
+            beliefsGrid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 20px;">
+                    <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/beliefs/${activeUser}`);
+                const beliefs = await response.json();
+                
+                beliefsGrid.innerHTML = "";
+                document.getElementById("cnt-timeline").innerText = beliefs.filter(b => b.status === 'active').length;
+                document.getElementById("strip-beliefs").innerText = beliefs.filter(b => b.status === 'active').length;
+
+                if (beliefs.length === 0) {
+                    beliefsGrid.innerHTML = `
+                        <div class="empty-state-container" style="grid-column: 1/-1;">
+                            <div class="empty-state-icon">⚖️</div>
+                            <div class="explanation-text">No active or historical beliefs exist. Trigger the contradiction demo flow to infer your first belief!</div>
+                        </div>
+                    `;
+                }
+
+                beliefs.forEach(b => {
+                    const card = document.createElement("div");
+                    card.className = "belief-card";
+                    const statusClass = b.status === 'active' ? 'status-active' : b.status === 'deprecated' ? 'status-deprecated' : 'status-conflicted';
+                    
+                    card.innerHTML = `
+                        <span class="belief-status-dot ${statusClass}">${b.status}</span>
+                        <div class="belief-ns">Namespace: ${b.namespace}</div>
+                        <div class="belief-title">${b.predicate} = ${b.object_value}</div>
+                        <div class="belief-meta">
+                            <span>Confidence: <strong>${b.confidence.toFixed(2)}</strong></span>
+                            <span>Validated: ${new Date(b.last_validated_at).toLocaleDateString()}</span>
+                        </div>
+                    `;
+                    beliefsGrid.appendChild(card);
+                });
+
+                // Fetch revisions audit log
+                const revisionRes = await fetch(`${API_BASE}/admin/revisions/${activeUser}`);
+                const revisions = await revisionRes.json();
+                
+                const tbody = document.getElementById("revision-log-rows");
+                tbody.innerHTML = "";
+                
+                if (revisions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No belief revision audits found.</td></tr>';
+                    return;
+                }
+
+                revisions.forEach(r => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td style="color: var(--accent-blue); font-weight:700;">${r.action.toUpperCase()}</td>
+                        <td>${r.reason}</td>
+                        <td style="font-family: monospace; font-size: 11px; color: var(--text-muted);">${r.old_belief_id || '-'}</td>
+                        <td style="font-family: monospace; font-size: 11px; color: var(--text-muted);">${r.new_belief_id || '-'}</td>
+                        <td>${new Date(r.created_at).toLocaleString()}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                beliefsGrid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--accent-red); padding: 20px;">
+                        Error loading timeline. <button class="action-btn" onclick="loadRevisionHistory()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // --- Dashboard Observability ---
+        async function loadMetrics() {
+            const container = document.getElementById("metrics-grid-box");
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 20px;">
+                    <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/metrics/${activeUser}`);
+                const data = await response.json();
+                
+                container.innerHTML = "";
+                document.getElementById("strip-updated").innerText = "Updated at " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+
+                if (data.error) {
+                    container.innerHTML = `<div class="explanation-text" style="grid-column: 1/-1;">${data.error}</div>`;
+                    return;
+                }
+
+                const metrics = data.metrics;
+                const items = [
+                    { label: "Active Episodes", val: metrics.active_episodes },
+                    { label: "Archived Episodes", val: metrics.archived_episodes },
+                    { label: "Active Beliefs", val: metrics.active_beliefs },
+                    { label: "Consistency Ratio", val: (metrics.belief_consistency_ratio * 100).toFixed(0) + "%" },
+                    { label: "Revision Actions Logged", val: metrics.gate_decisions_logged }
+                ];
+
+                items.forEach(item => {
+                    const tile = document.createElement("div");
+                    tile.className = "metric-tile";
+                    tile.innerHTML = `
+                        <div class="metric-num">${item.val}</div>
+                        <div class="metric-label">${item.label}</div>
+                    `;
+                    container.appendChild(tile);
+                });
+
+            } catch (err) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--accent-red);">
+                        Failed to retrieve health metrics. <button class="action-btn" onclick="loadMetrics()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // --- Demo Run operations ---
+        async function runContradictionDemo() {
+            // Select user "avani_researcher" for the demo
+            selectUser("avani_researcher");
+            switchTab("chat-workspace", document.querySelectorAll(".tab-btn")[0]);
+
+            const input = document.getElementById("chat-msg-input");
+            
+            // Step 1: Send initial preference
+            input.value = "I want to focus on backend engineering in my new role.";
+            showToast("Demo Step 1: Expressing preference...");
+            await sendMessage();
+
+            // Wait 2.5 seconds
+            setTimeout(async () => {
+                // Step 2: Send contradiction
+                input.value = "Actually, I decided to switch and focus on frontend UI today.";
+                showToast("Demo Step 2: Sending contradicting preference...");
+                await sendMessage();
+
+                // Switch to Belief timeline
+                setTimeout(() => {
+                    switchTab("belief-workspace", document.querySelectorAll(".tab-btn")[2]);
+                    showToast("Contradiction resolved! View the audit log below.", 4000);
+                }, 2000);
+            }, 3000);
+        }
+
+        async function runEvals() {
+            const box = document.getElementById("evals-log-box");
+            box.style.display = "block";
+            box.innerText = "Running Vellum memory benchmark evaluations...";
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/run-evals/${activeUser}`, { method: "POST" });
+                const data = await response.json();
+                
+                box.innerText = JSON.stringify(data, null, 2);
+                loadMetrics();
+                showToast("Evaluations Completed!");
+            } catch (err) {
+                box.innerText = `Error running evaluations: ${err.message}`;
+            }
+        }
+
+        async function triggerDecay() {
+            const box = document.getElementById("evals-log-box");
+            box.style.display = "block";
+            box.innerText = "Triggering memory decay job...";
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/decay/${activeUser}`, { method: "POST" });
+                const data = await response.json();
+                
+                box.innerText = JSON.stringify(data, null, 2);
+                loadMetrics();
+                showToast("Decay Cycle Applied!");
+            } catch (err) {
+                box.innerText = `Error applying decay: ${err.message}`;
+            }
+        }
+
+        async function triggerCompression() {
+            const box = document.getElementById("evals-log-box");
+            box.style.display = "block";
+            box.innerText = "Triggering memory compression job...";
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/compress/${activeUser}`, { method: "POST" });
+                const data = await response.json();
+                
+                box.innerText = JSON.stringify(data, null, 2);
+                loadMetrics();
+                showToast("Memory Consolidation Applied!");
+            } catch (err) {
+                box.innerText = `Error applying compression: ${err.message}`;
+            }
+        }
+
+        function showToast(message, duration = 3000) {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast-notif";
+            toast.innerHTML = `🚀 <span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(50px)";
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+    </script>
+</body>
+</html>
