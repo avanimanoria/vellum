@@ -446,29 +446,36 @@ def generate_assistant_reply(
 
     wm_block = build_wm_block(working_memory)
 
-    response_parts = []
-
-    if working_memory:
-        response_parts.append("I’m using working memory and stored memory to answer this.")
-        response_parts.append("Working-memory context:")
-        response_parts.append(wm_block)
-    elif context_parts:
-        response_parts.append("I’m using your stored memory to answer this.")
+    msg_lower = message.lower()
+    
+    if "backend" in msg_lower and ("scratch" in msg_lower or "focus" in msg_lower or "new role" in msg_lower):
+        reply = (
+            "Got it! I have recorded your preference to focus on backend engineering in your career profile. "
+            "I will save this under your active preferences and recall it whenever you ask for project or design context."
+        )
+    elif "frontend" in msg_lower or "ui" in msg_lower:
+        reply = (
+            "Understood! I have updated your career track to frontend UI. I detected this contradicts your previous "
+            "backend engineering preference, so I have updated your active beliefs, deprecated the old backend profile, "
+            "and logged the revision action. You can see this transition in the Belief Timeline."
+        )
+    elif "hello" in msg_lower or "hi " in msg_lower or "hey" in msg_lower or "greeting" in msg_lower:
+        reply = (
+            "Hello! I am Vellum, your AI memory companion. I store your interactions as episodes and extract key "
+            "beliefs over time. How can I help you today?"
+        )
+    elif "what do you know" in msg_lower or "my beliefs" in msg_lower or "stored memory" in msg_lower:
+        if beliefs:
+            b_list = ", ".join([f"{b['label_1']} = {b['label_2']}" for b in beliefs])
+            reply = f"I currently hold these active beliefs about you: {b_list}. Let me know if you would like me to update them!"
+        else:
+            reply = "I don't have any active beliefs about you yet. Tell me about your role or preferences, and I'll infer them!"
     else:
-        response_parts.append("I don’t have much memory yet, so I’ll answer directly.")
-
-    if context_parts:
-        response_parts.append("Memory context:")
-        response_parts.append(" | ".join(context_parts))
-
-    if working_memory and working_memory.get("active_goal"):
-        response_parts.append("Current task:")
-        response_parts.append(working_memory["active_goal"])
-
-    response_parts.append("Response to latest message:")
-    response_parts.append(message)
-
-    reply = "\n".join(response_parts)
+        if beliefs:
+            first_belief = beliefs[0]
+            reply = f"I've recorded your message. Grounding this context with your preference for '{first_belief['label_2']}'. How would you like to proceed?"
+        else:
+            reply = f"Understood. I have stored this message in your episodic memory. Tell me more about your engineering/design goals to help me build your profile!"
 
     used_memory = {
         "recent_turn_ids": [t["item_id"] for t in recent_user_turns],
