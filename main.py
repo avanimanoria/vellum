@@ -446,36 +446,87 @@ def generate_assistant_reply(
 
     wm_block = build_wm_block(working_memory)
 
+    # Parse lowercase word set to avoid substring collisions (e.g. 'ui' matching inside 'build')
     msg_lower = message.lower()
-    
-    if "backend" in msg_lower and ("scratch" in msg_lower or "focus" in msg_lower or "new role" in msg_lower):
+    words = set(msg_lower.replace(".", "").replace(",", "").replace("!", "").split())
+
+    # Extract user profile highlights from memory pack
+    user_preferences = []
+    for b in beliefs:
+        if b["label_1"] == "prefers_role_family":
+            pref = b["label_2"].replace("_", " ").title()
+            user_preferences.append(pref)
+            
+    pref_text = f" (tailored to your focus on {user_preferences[0]})" if user_preferences else ""
+
+    # 1. Custom memory-grounded scenarios
+    if "companion" in words or "widget" in words or "local" in words or "windows" in words:
+        is_backend = any("backend" in b["label_2"] for b in beliefs)
+        is_frontend = any("frontend" in b["label_2"] for b in beliefs)
+        
+        if is_frontend:
+            reply = (
+                "For your local Windows companion application, since you prefer Frontend & UI work, we should start "
+                "by building a beautiful, glassmorphic desktop widget using Electron or Tauri. This widget will connect "
+                "to a local FastAPI service and display your active memory logs with dynamic animations."
+            )
+        elif is_backend:
+            reply = (
+                "For your local Windows companion application, since you prefer Backend engineering, we should focus "
+                "first on building the local FastAPI daemon service on your laptop. We will structure it with database hooks, "
+                "background jobs for memory decay, and run a simple system-tray icon widget in Python."
+            )
+        else:
+            reply = (
+                "To build a local Windows companion application, we can start with a visible desktop widget and a local "
+                "FastAPI service. Let me know if you prefer to focus on the frontend UI widget or the backend memory service first!"
+            )
+            
+    elif "search" in words or "engine" in words:
         reply = (
-            "Got it! I have recorded your preference to focus on backend engineering in your career profile. "
-            "I will save this under your active preferences and recall it whenever you ask for project or design context."
+            "To build a search engine, we will need to set up a crawler, indexer, and query processor. "
+            f"Given your focus{pref_text}, we should use Python and FastAPI to build a high-performance vector search API."
         )
-    elif "frontend" in msg_lower or "ui" in msg_lower:
+        
+    elif "hello" in words or "hi" in words or "hey" in words:
+        reply = (
+            "Hello! I am Vellum, your cognitive memory companion. I store your interactions as episodes and extract key "
+            "beliefs over time. How can I help you today?"
+        )
+        
+    elif "know" in words or "beliefs" in words or "memory" in words:
+        if beliefs:
+            b_list = ", ".join([f"{b['label_1']} = {b['label_2']}" for b in beliefs])
+            reply = f"I currently know that your active beliefs are: {b_list}. Let me know if you'd like me to update them!"
+        else:
+            reply = "I don't have any active beliefs about you yet. Tell me about your role or preferences, and I'll infer them!"
+
+    # 2. Strict preference updates & contradiction signals
+    elif "frontend" in words or "ui" in words:
         reply = (
             "Understood! I have updated your career track to frontend UI. I detected this contradicts your previous "
             "backend engineering preference, so I have updated your active beliefs, deprecated the old backend profile, "
             "and logged the revision action. You can see this transition in the Belief Timeline."
         )
-    elif "hello" in msg_lower or "hi " in msg_lower or "hey" in msg_lower or "greeting" in msg_lower:
+    elif "backend" in words:
         reply = (
-            "Hello! I am Vellum, your AI memory companion. I store your interactions as episodes and extract key "
-            "beliefs over time. How can I help you today?"
+            "Got it! I have recorded your preference to focus on backend engineering in your career profile. "
+            "I will save this under your active preferences and recall it whenever you ask for project or design context."
         )
-    elif "what do you know" in msg_lower or "my beliefs" in msg_lower or "stored memory" in msg_lower:
-        if beliefs:
-            b_list = ", ".join([f"{b['label_1']} = {b['label_2']}" for b in beliefs])
-            reply = f"I currently hold these active beliefs about you: {b_list}. Let me know if you would like me to update them!"
-        else:
-            reply = "I don't have any active beliefs about you yet. Tell me about your role or preferences, and I'll infer them!"
     else:
+        # 3. Dynamic generic response grounding
         if beliefs:
-            first_belief = beliefs[0]
-            reply = f"I've recorded your message. Grounding this context with your preference for '{first_belief['label_2']}'. How would you like to proceed?"
+            pref = beliefs[0]['label_2'].replace("_", " ").title()
+            reply = (
+                f"I've received your request: '{message}'. Grounding this in your profile preference for '{pref}', "
+                "here is a suggested step-by-step plan: 1) Define requirements, 2) Set up local environment, 3) Build core logic. "
+                "How would you like to proceed?"
+            )
         else:
-            reply = f"Understood. I have stored this message in your episodic memory. Tell me more about your engineering/design goals to help me build your profile!"
+            reply = (
+                f"I've received your request: '{message}'. To give you customized planning, tell me more about your "
+                "role preferences (e.g. backend, frontend UI, system design) and I will start building your memory index."
+            )
 
     used_memory = {
         "recent_turn_ids": [t["item_id"] for t in recent_user_turns],
