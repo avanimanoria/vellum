@@ -773,18 +773,28 @@ def chat(req: ChatRequest):
         # of a database constraint failure.
         with get_conn() as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT u.id
-                    FROM users u JOIN sessions s ON s.user_id = u.id
-                    WHERE u.external_user_id = %s AND s.id = %s
-                    """,
-                    (req.external_user_id, req.session_id),
-                )
-                user_db_row = cur.fetchone()
-        if not user_db_row:
-            raise HTTPException(status_code=404, detail="User or session not found")
-        user_id = user_db_row[0]
+                cur.execute("SELECT id FROM users WHERE external_user_id = %s", (req.external_user_id,))
+                user_row = cur.fetchone()
+                if not user_row:
+                    cur.execute(
+                        "INSERT INTO users (external_user_id, display_name) VALUES (%s, %s) RETURNING id",
+                        (req.external_user_id, req.external_user_id.replace("_", " ").title()),
+                    )
+                    user_id = cur.fetchone()[0]
+                else:
+                    user_id = user_row[0]
+
+                cur.execute("SELECT id FROM sessions WHERE id = %s", (req.session_id,))
+                sess_row = cur.fetchone()
+                if not sess_row:
+                    cur.execute(
+                        "INSERT INTO sessions (id, user_id, title) VALUES (%s, %s, 'Active Session') RETURNING id",
+                        (req.session_id, user_id),
+                    )
+                    session_id = cur.fetchone()[0]
+                else:
+                    session_id = sess_row[0]
+                conn.commit()
 
         user_row = store_turn_internal(
             external_user_id=req.external_user_id,

@@ -8,8 +8,8 @@ def seed():
     conn = get_conn()
     try:
         with conn.cursor() as cur:
-            # 1. Clean existing demo users
-            cur.execute("DELETE FROM users WHERE external_user_id IN ('avani_researcher', 'bob_developer', 'charlie_designer')")
+            # Clean all tables to make it 100% fresh
+            cur.execute("TRUNCATE users CASCADE")
             conn.commit()
 
         with conn.cursor() as cur:
