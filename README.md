@@ -353,7 +353,11 @@ Good ways to present this project in interviews:
 - Explain the turns -> episodes -> beliefs lifecycle.
 - Emphasize evidence-linked reasoning and contradiction handling.
 - Discuss how this architecture supports personalization, consistency, and long-term agent behavior.
+---
 
-## License
+## Author
 
-MIT License.
+**Avani Manoria**
+
+- GitHub: [@avanimanoria](https://github.com/avanimanoria)
+- Project repository: [Vellum](https://github.com/avanimanoria/vellum.git)
