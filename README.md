@@ -2,9 +2,6 @@
 
 **Vellum** is an advanced AI memory system for persistent, personalized, and self-updating agents. It is designed to help AI systems move beyond stateless chat by storing experiences, forming beliefs from repeated evidence, retrieving relevant context across sessions, and gradually improving what the system knows about a user over time.
 
-## Resume-ready summary
-
-Built **Vellum**, a FastAPI + PostgreSQL + pgvector memory engine for AI agents that transforms chat interactions into episodic memories and semantic beliefs, retrieves relevant user context across sessions, and lays the foundation for contradiction-aware belief revision, memory decay, and long-term personalization.
 
 ## Why this project matters
 
@@ -342,17 +339,6 @@ Run Vellum's scripted conversation benchmark containing 3 conversation turns (gr
   curl -X POST http://localhost:8000/admin/run-evals/avani_researcher
   ```
 
----
-
-## Notes for interview discussion
-
-Good ways to present this project in interviews:
-
-- Explain why stateless LLMs are limited.
-- Show how Vellum separates raw history from structured memory.
-- Explain the turns -> episodes -> beliefs lifecycle.
-- Emphasize evidence-linked reasoning and contradiction handling.
-- Discuss how this architecture supports personalization, consistency, and long-term agent behavior.
 ---
 
 ## Author
